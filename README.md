@@ -111,6 +111,12 @@ iface eth0 inet static
 	gateway 192.170.2.1
 ```
 
+Lakukan perintah berikut di Router.
+
+```
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 192.170.0.0/16
+```
+
 Untuk mengetes apakah node telah terkonfigurasi dengan benar, dilakukan tes kepada node client.
 
 ```
@@ -806,23 +812,121 @@ Dilakukan setup berikut. Option +Indexes agar /public dapat melakukan directory 
 </Directory>
 ```
 
-![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163779941289164820/image.png?ex=6540d187&is=652e5c87&hm=064574f1ea79f28e42c4a0b8596ada47f1ea5f3f75945a85abaa4b8e3e43b93c&)
+Pengetesan dilakukan sebagai berikut.
+
+```
+lynx parikesit.abimanyu.A03.com/public
+lynx parikesit.abimanyu.A03.com/secret
+```
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163810969475104778/image.png?ex=6540ee6d&is=652e796d&hm=bcd64562506a4b77f3afb74518466b48c735cd4fbd85588a1944de3b1352aabb&)
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163811165730775080/image.png?ex=6540ee9c&is=652e799c&hm=0665662d0b6c8f8c6cdd2b660cc2974eeaa2f6b2b7d6d4553d80ce038151bc7c&)
 
 ## No. 15
 
 ### Buatlah kustomisasi halaman error pada folder /error untuk mengganti error kode pada Apache. Error kode yang perlu diganti adalah 404 Not Found dan 403 Forbidden.
 
-![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163780583135125544/image.png?ex=6540d221&is=652e5d21&hm=8d92a19a499ac9d40f720e119bc59488f6c3f1267fbea572df4cabd1729664ce&)
+Untuk kustomisasi halaman error 404 dan 403, dilakukan setup sebagai berikut.
+
+```
+ErrorDocument 403 /error/403.html
+ErrorDocument 404 /error/404.html
+```
+
+Pengetesan dilakukan sebagai berikut.
+
+```
+lynx parikesit.abimanyu.a09.com/testerror
+lynx parikesit.abimanyu.a09.com/secret
+```
+
+![image](https://media.discordapp.net/attachments/1163557097816981575/1163779941289164820/image.png?ex=6540d187&is=652e5c87&hm=064574f1ea79f28e42c4a0b8596ada47f1ea5f3f75945a85abaa4b8e3e43b93c&=&width=1057&height=595)
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163811850635456572/image.png?ex=6540ef3f&is=652e7a3f&hm=71cf7664a59e4f233c3bdbdfd6a66f4164aa2d56f67ad791d865ea8913414126&)
 
 ## No. 16
 
 ### Buatlah suatu konfigurasi virtual host agar file asset www.parikesit.abimanyu.yyy.com/public/js menjadi www.parikesit.abimanyu.yyy.com/js 
 
+Dilakukan setup sebagai berikut.
+
+```
+Alias /js /var/www/parikesit.abimanyu.A03/public/js
+```
+
+Pengetesan dilakukan sebagai berikut.
+
+```
+lynx parikesit.abimanyu.A03.com/js
+```
+
 ![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163781583241748560/image.png?ex=6540d30f&is=652e5e0f&hm=d1eeec85f722e98a96494565906047efe70dcb806f810295a699f9cac84ce72e&)
+
+## No. 17 & 18
+
+Dilakukan setup berikut di Abimanyu .
+
+```
+cd /var/www
+wget 'https://drive.usercontent.google.com/download?id=1pPSP7yIR05JhSFG67RVzgkb-VcW9vQO6&export=download&authuser=0&confirm=t&uuid=c039943d-843b-47b9-8910-4b46edf58596&at=APZUnTWSNiEJdlQx1mlaCEI-F6-B:1696957565777' -O rjp.baratayuda.abimanyu
+
+unzip rjp.baratayuda.abimanyu -d rjp.baratayuda.abimanyu.A03
+mv rjp.baratayuda.abimanyu.A03/rjp.baratayuda.abimanyu.yyy.com/* rjp.baratayuda.abimanyu.A03
+rmdir rjp.baratayuda.abimanyu.A03/rjp.baratayuda.abimanyu.yyy.com
+rm rjp.baratayuda.abimanyu
+
+service apache2 start
+cd /etc/apache2/sites-available
+echo '<VirtualHost *:14000 *:14400>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.A03
+        ServerName rjp.baratayuda.abimanyu.A03.com
+        ServerAlias www.rjp.baratayuda.abimanyu.A03.com
+
+        <Directory /var/www/rjp.baratayuda.abimanyu.a09>
+                AuthType Basic
+                AuthName "Restricted Content"
+                AuthUserFile /etc/apache2/.htpasswd
+                Require valid-user
+        </Directory>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>
+' > rjp.baratayuda.abimanyu.A03.com.conf
+
+echo 'Listen 80
+Listen 14000
+Listen 14400
+
+<IfModule ssl_module>
+        Listen 443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+        Listen 443
+</IfModule>' > /etc/apache2/ports.conf
+
+htpasswd -c -b /etc/apache2/.htpasswd Wayang baratayudaA03
+a2ensite rjp.baratayuda.abimanyu.A03.com.conf
+service apache2 restart
+```
 
 ## No. 17
 
 ### Agar aman, buatlah konfigurasi agar www.rjp.baratayuda.abimanyu.yyy.com hanya dapat diakses melalui port 14000 dan 14400.
+
+Akses melalui port 14000 dan 14400 diatur di /rjp.baratayuda.abimanyu.A03.com.conf dan /ports.conf. Pengetesan dilakukan sebagai berikut.
+
+```
+lynx rjp.baratayuda.abimanyu.A03.com:14000
+lynx rjp.baratayuda.abimanyu.A03.com:14400
+```
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163782410916331560/image.png?ex=6540d3d4&is=652e5ed4&hm=2b149a0373c232367caf75574d1d3ff7701f3fdbd1acc8ca7c1d8f8eef74a3f0&)
 
 ![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163782658057310208/image.png?ex=6540d40f&is=652e5f0f&hm=e9f7ad9829af37a3df60b1f7b1553cc15d228ca7bd6beef431f2958b7fc4e8a0&)
 
@@ -830,10 +934,40 @@ Dilakukan setup berikut. Option +Indexes agar /public dapat melakukan directory 
 
 ### Untuk mengaksesnya buatlah autentikasi username berupa “Wayang” dan password “baratayudayyy” dengan yyy merupakan kode kelompok. Letakkan DocumentRoot pada /var/www/rjp.baratayuda.abimanyu.yyy.
 
+Setup untuk autentikasi yaitu sebagai berikut.
+
+```
+<Directory /var/www/rjp.baratayuda.abimanyu.A03>
+	AuthType Basic
+        AuthName "Restricted Content"
+	AuthUserFile /etc/apache2/.htpasswd
+        Require valid-user
+</Directory>
+```
+
+```
+htpasswd -c -b /etc/apache2/.htpasswd Wayang baratayudaA03
+```
+
 
 ## No. 19
 
 ### Buatlah agar setiap kali mengakses IP dari Abimanyu akan secara otomatis dialihkan ke www.abimanyu.yyy.com (alias)
+
+Setup untuk mengalihkan ke www.abimanyu.A03.com setiap kali mengakses IP dari Abimanyu yaitu sebagai berikut.
+
+```
+echo '<VirtualHost *:80>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html
+
+        Redirect / http://www.abimanyu.A03.com/
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>' > 000-default.conf
+```
 
 
 ## No. 20
