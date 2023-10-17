@@ -125,13 +125,119 @@ ping google.com -c 5
 
 ### Buatlah website utama pada node arjuna dengan akses ke arjuna.yyy.com dengan alias www.arjuna.yyy.com dengan yyy merupakan kode kelompok.
 
+Lakukan setup sebagai berikut di DNS Master.
+
+```
+echo 'nameserver 192.170.2.2
+nameserver 192.168.122.1' > /etc/resolv.conf
+apt-get update
+apt-get install bind9 -y
+echo 'zone "arjuna.A03.com" {
+        type master;
+        file "/etc/bind/jarkom/arjuna.A03.com";
+};' > /etc/bind/named.conf.local
+mkdir /etc/bind/jarkom
+cp /etc/bind/db.local /etc/bind/jarkom/arjuna.A03.com
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     arjuna.A03.com. root.arjuna.A03.com. (
+                        2022100601      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      arjuna.A03.com.
+@       IN      A       192.170.2.2
+www     IN      CNAME   arjuna.A03.com.
+' > /etc/bind/jarkom/arjuna.A03.com
+service bind9 restart
+```
+
+Lakukan pengetesan di node Arjuna.
+
+```
+ping arjuna.a03.com -c 5
+ping www.arjuna.a03.com -c 5
+```
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163704507574784010/image.png?ex=65408b47&is=652e1647&hm=c28045598aba74bde28d1aa1d39f1510fa938685c7a0752e2bf4cc3ed989cfab&)
+
 ## No. 3
 
 ### Dengan cara yang sama seperti soal nomor 2, buatlah website utama dengan akses ke abimanyu.yyy.com dan alias www.abimanyu.yyy.com.
 
+Lakukan setup di DNS Master.
+
+```
+echo 'zone "arjuna.A03.com" {
+        type master;
+        file "/etc/bind/jarkom/arjuna.A03.com";
+};
+
+zone "abimanyu.A03.com" {
+        type master;
+        file "/etc/bind/jarkom/abimanyu.A03.com";
+};' > /etc/bind/named.conf.local
+cp /etc/bind/db.local /etc/bind/jarkom/abimanyu.A03.com
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.A03.com. root.abimanyu.A03.com. (
+                        2022100601      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      abimanyu.A03.com.
+@       IN      A       192.170.2.2
+www     IN      CNAME   abimanyu.A03.com.
+' > /etc/bind/jarkom/abimanyu.A03.com
+service bind9 restart
+```
+
+Lakukan pengetesan di node Arjuna.
+
+```
+ping arjuna.a03.com -c 5
+ping www.arjuna.a03.com -c 5
+```
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163704798806286406/image.png?ex=65408b8c&is=652e168c&hm=681bb080163c01f5fd531d0390962d4d042be222cd0308d8d6e5ba090e5afe5c&)
+
 ## No. 4
 
 ### Kemudian, karena terdapat beberapa web yang harus di-deploy, buatlah subdomain parikesit.abimanyu.yyy.com yang diatur DNS-nya di Yudhistira dan mengarah ke Abimanyu.
+
+Penambahan subdomain dilakukan dengan menambah setup di /etc/bind/jarkom/abimanyu.a03.com pada DNS Master.
+
+```
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.A03.com. root.abimanyu.A03.com. (
+                        2022100601      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      abimanyu.A03.com.
+@       IN      A       192.170.2.2
+www     IN      CNAME   abimanyu.A03.com.
+parikesit       IN      A       192.170.1.2
+' > /etc/bind/jarkom/abimanyu.A03.com
+service bind9 restart
+```
+
+Tes dilakukan sebagai berikut.
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163705224486211584/image.png?ex=65408bf2&is=652e16f2&hm=a577c9d57dd62bb636f1cce52d51a50c990f53bb2d1440f0dcd5723eaaba57a8&)
 
 ## No. 5
 
