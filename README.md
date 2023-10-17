@@ -473,8 +473,8 @@ service bind9 restart
 Dilakukan pengetesan sebagai berikut di
 
 ```
-ping baratauda.abimanyu.A03.com -c 5
-ping www.baratauda.abimanyu.A03.com -c 5
+ping baratayuda.abimanyu.A03.com -c 5
+ping www.baratayuda.abimanyu.A03.com -c 5
 
 ```
 
