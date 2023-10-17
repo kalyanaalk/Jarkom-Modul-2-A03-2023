@@ -111,6 +111,16 @@ iface eth0 inet static
 	gateway 192.170.2.1
 ```
 
+Untuk mengetes apakah node telah terkonfigurasi dengan benar, dilakukan tes kepada node client.
+
+```
+ping google.com -c 5
+```
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163704040862003290/image.png?ex=65408ad7&is=652e15d7&hm=3e555fd52d21edc421419e87476d56e520e0e37e19139a6c2fd3b47038629c75&)
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163704205148692540/image.png?ex=65408aff&is=652e15ff&hm=ecffe5c3dca4a320e702eb323d33c4e8e300bafa8c14c747ebcce305fa1499d7&)
+
 ## No. 2
 
 ### Buatlah website utama pada node arjuna dengan akses ke arjuna.yyy.com dengan alias www.arjuna.yyy.com dengan yyy merupakan kode kelompok.
