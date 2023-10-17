@@ -243,9 +243,116 @@ Tes dilakukan sebagai berikut.
 
 ### Buat juga reverse domain untuk domain utama. (Abimanyu saja yang direverse)
 
+Reverse dari IP Abimanyu (192.170.1.2) adalah 2.1.170.192. Dilakukan setup sebagai berikut.
+
+```
+echo 'zone "arjuna.A03.com" {
+        type master;
+        file "/etc/bind/jarkom/arjuna.A03.com";
+};
+
+zone "abimanyu.A03.com" {
+        type master;
+        file "/etc/bind/jarkom/abimanyu.A03.com";
+};
+
+zone "1.170.192.in-addr.arpa" {
+    type master;
+    file "/etc/bind/jarkom/1.170.192.in-addr.arpa";
+};
+' > /etc/bind/named.conf.local
+cp /etc/bind/db.local /etc/bind/jarkom/1.170.192.in-addr.arpa
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.A03.com. root.abimanyu.A03.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+1.170.192.in-addr.arpa. IN      NS      abimanyu.A03.com.
+2                       IN      PTR     abimanyu.A03.com.
+' > /etc/bind/jarkom/1.170.192.in-addr.arpa
+service bind9 restart
+```
+
+Dilakukan tes sebagai berikut.
+
+```
+host -t PTR 192.170.1.2
+```
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163705908291960832/image.png?ex=65408c95&is=652e1795&hm=5ef8f7eda4818bb9c429a086a23b1030de7537aef27b1530d0e6be84e89c28de&)
+
 ## No. 6
 
 ### Agar dapat tetap dihubungi ketika DNS Server Yudhistira bermasalah, buat juga Werkudara sebagai DNS Slave untuk domain utama.
+
+Untuk membuat Werkudara sebagai DNS Slave, dilakukan setup berikut di node Yudhistira.
+
+```
+echo 'zone "arjuna.A03.com" {
+        type master;
+        notify yes;
+        also-notify { 190.170.2.3; };
+        allow-transfer {192.170.2.3; };
+        file "/etc/bind/jarkom/arjuna.A03.com";
+};
+
+zone "abimanyu.A03.com" {
+        type master;
+        notify yes;
+        also-notify { 190.170.2.3; };
+        allow-transfer {192.170.2.3; };
+        file "/etc/bind/jarkom/abimanyu.A03.com";
+};
+
+zone "2.170.192.in-addr.arpa" {
+    type master;
+    file "/etc/bind/jarkom/2.170.192.in-addr.arpa";
+};
+' > /etc/bind/named.conf.local
+service bind9 restart
+
+```
+
+Dilakukan juga setup berikut di node Werkudara.
+
+```
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+apt-get update
+apt-get install bind9 -y
+echo 'zone "arjuna.A03.com" {
+        type slave;
+        masters { 192.170.2.2; };
+        file "/var/lib/bind/arjuna.A03.com";
+};
+
+zone "abimanyu.A03.com" {
+        type slave;
+        masters { 192.170.2.2; };
+        file "/var/lib/bind/abimanyu.A03.com";
+};
+' > /etc/bind/named.conf.local
+service bind9 restart
+```
+
+Untuk mengetes, jangan lupa untuk menghentikan service bind9 di Yudhistira.
+
+```
+service bind9 stop
+```
+
+Pengetesan dilakukan sebagai berikut.
+
+```
+ping abimanyu.A03.com -c 5
+```
+
+![image](https://media.discordapp.net/attachments/1163557097816981575/1163764955745628192/image.png?ex=6540c393&is=652e4e93&hm=1f62d4f1b1009b72776b18c4560a022bf6f60293aae8300a502ab19657b74113&=&width=1057&height=242)
 
 ## No. 7
 
