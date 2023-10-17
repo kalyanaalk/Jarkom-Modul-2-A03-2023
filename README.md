@@ -1,5 +1,3 @@
-![image](https://github.com/kalyanaalk/Jarkom-Modul-2-A03-2023-/assets/107338432/465e3da1-6f93-43e6-b7d4-ee0248f229c4)Kelompok  : A03
-
 Nama      : Kalyana Putri Al Kanza
 
 NRP       : 5025211137
