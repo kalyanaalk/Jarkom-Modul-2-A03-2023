@@ -1,6 +1,8 @@
-Nama      : Kalyana Putri Al Kanza
+Kelompok: A03
 
-NRP       : 5025211137
+Nama: Kalyana Putri Al Kanza
+
+NRP: 5025211137
 
 ## No. 1
 
