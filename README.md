@@ -358,13 +358,223 @@ ping abimanyu.A03.com -c 5
 
 ### Seperti yang kita tahu karena banyak sekali informasi yang harus diterima, buatlah subdomain khusus untuk perang yaitu baratayuda.abimanyu.yyy.com dengan alias www.baratayuda.abimanyu.yyy.com yang didelegasikan dari Yudhistira ke Werkudara dengan IP menuju ke Abimanyu dalam folder Baratayuda.
 
+Untuk subdomain yang didelegasikan dari Yudhistira ke Werkudara dengan IP menuju ke Abimanyu dalam folder Baratayuda, dilakukan setup sebagai berikut di node Yudhistira.
+
+```
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.A03.com. root.abimanyu.A03.com.$
+                        2022100601      ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      abimanyu.A03.com.
+@       IN      A       192.170.2.2
+www     IN      CNAME   abimanyu.A03.com.
+ns1     IN      A       192.170.2.3
+baratayuda      IN      NS      ns1
+parikesit       IN      A       192.170.1.2
+www.parikesit   IN      CNAME   abimanyu.A03.com
+' > /etc/bind/jarkom/abimanyu.A03.com
+
+echo 'options {
+        directory "/var/cache/bind";
+        allow-query{any;};
+        auth-nxdomain no;    # conform to RFC1035
+        listen-on-v6 { any; };
+};
+' > /etc/bind/named.conf.options
+
+echo 'zone "arjuna.A03.com" {
+        type master;
+        notify yes;
+        also-notify { 190.170.2.3; };
+        allow-transfer {192.170.2.3; };
+        file "/etc/bind/jarkom/arjuna.A03.com";
+};
+
+zone "abimanyu.A03.com" {
+        type master;
+        notify yes;
+        also-notify { 190.170.2.3; };
+        allow-transfer {192.170.2.3; };
+        file "/etc/bind/jarkom/abimanyu.A03.com";
+};
+
+zone "2.170.192.in-addr.arpa" {
+    type master;
+    file "/etc/bind/jarkom/2.170.192.in-addr.arpa";
+};
+' > /etc/bind/named.conf.local
+service bind9 restart
+```
+
+Dilakukan juga setup sebagai berikut di node Werkudara.
+
+```
+echo 'options {
+        directory "/var/cache/bind";
+        allow-query{any;};
+        auth-nxdomain no;
+        listen-on-v6 { any; };
+};
+' > /etc/bind/named.conf.options
+
+echo 'zone "arjuna.A03.com" {
+        type slave;
+        masters { 192.170.2.2; };
+        file "/var/lib/bind/arjuna.A03.com";
+};
+
+zone "abimanyu.A03.com" {
+        type slave;
+        masters { 192.170.2.2; };
+        file "/var/lib/bind/abimanyu.A03.com";
+};
+
+zone "baratayuda.abimanyu.A03.com" {
+        type master;
+        file "/etc/bind/delegasi/baratayuda.abimanyu.A03.com";
+};
+' > /etc/bind/named.conf.local
+
+mkdir /etc/bind/delegasi
+cp /etc/bind/db.local /etc/bind/delegasi/baratayuda.abimanyu.A03.com
+
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     baratayuda.abimanyu.A03.com. root.baratayuda.abimanyu.A03.com. (
+                         2022100601     ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      baratayuda.abimanyu.A03.com.
+@       IN      A       192.170.1.2
+www     IN      CNAME   baratayuda.abimanyu.A03.com.
+' > /etc/bind/delegasi/baratayuda.abimanyu.A03.com
+
+service bind9 restart
+```
+
+Dilakukan pengetesan sebagai berikut di
+
+```
+ping baratauda.abimanyu.A03.com -c 5
+ping www.baratauda.abimanyu.A03.com -c 5
+
+```
+
+![image](https://media.discordapp.net/attachments/1163557097816981575/1163706799799676928/image.png?ex=65408d69&is=652e1869&hm=0183e5ceebb30e0b69516432c86093d3db4cf9082d5dab8984ca7520c6cb4b2d&=&width=846&height=663)
+
 ## No. 8
 
 ### Untuk informasi yang lebih spesifik mengenai Ranjapan Baratayuda, buatlah subdomain melalui Werkudara dengan akses rjp.baratayuda.abimanyu.yyy.com dengan alias www.rjp.baratayuda.abimanyu.yyy.com yang mengarah ke Abimanyu.
 
+Untuk membuat subdomain melalui werkudara dengan akses rjp.baratayuda.abimanyu.yyy.com dengan alias www.rjp.baratayuda.abimanyu.yyy.com yang mengarah ke Abimanyu, dilakukan setup sebagai berikut di node Werkudara
+
+```
+echo 'options {
+        directory "/var/cache/bind";
+        allow-query{any;};
+        auth-nxdomain no;
+        listen-on-v6 { any; };
+};
+' > /etc/bind/named.conf.options
+echo 'zone "arjuna.A03.com" {
+        type slave;
+        masters { 192.170.2.2; };
+        file "/var/lib/bind/arjuna.A03.com";
+};
+
+zone "abimanyu.A03.com" {
+        type slave;
+        masters { 192.170.2.2; };
+        file "/var/lib/bind/abimanyu.A03.com";
+};
+
+zone "baratayuda.abimanyu.A03.com" {
+        type master;
+        file "/etc/bind/delegasi/baratayuda.abimanyu.A03.com";
+};
+' > /etc/bind/named.conf.local
+mkdir /etc/bind/delegasi
+cp /etc/bind/db.local /etc/bind/delegasi/baratayuda.abimanyu.A03.com
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     baratayuda.abimanyu.A03.com. root.baratayuda.abimanyu.A03.com. (
+                         2022100601     ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      baratayuda.abimanyu.A03.com.
+@       IN      A       192.170.1.2
+www     IN      CNAME   baratayuda.abimanyu.A03.com.
+rjp     IN      A       192.170.1.2
+www.rjp IN      CNAME   rjp.baratayuda.abimanyu.A03.com.
+' > /etc/bind/delegasi/baratayuda.abimanyu.A03.com
+
+service bind9 restart
+```
+
+Pengetesan dilakukan sebagai berikut di NakulaClient
+
+```
+ping rjp.baratayuda.A03.com -c 5
+ping www.rjp.baratayuda.A03.com -c 5
+```
+
+![image](https://media.discordapp.net/attachments/1163557097816981575/1163713491052548218/image.png?ex=654093a5&is=652e1ea5&hm=b07d063b4c13bfa853b79f30b44fc6a2c44ee9340e8d97f377a2f05ed8fd526e&=&width=726&height=663)
+
 ## No. 9
 
 ### Arjuna merupakan suatu Load Balancer Nginx dengan tiga worker (yang juga menggunakan nginx sebagai webserver) yaitu Prabakusuma, Abimanyu, dan Wisanggeni. Lakukan deployment pada masing-masing worker.
+
+Hal pertama yang dilakukan adalah menginstall nginx di Router.
+
+```
+apt-get update
+apt-get install nginx
+service nginx start
+```
+
+Install lynx, nginx, dan php di node webserver.
+
+```
+echo 'nameserver 192.170.2.2
+nameserver 192.170.2.3
+nameserver 192.168.122.1
+' > /etc/resolv.conf
+apt-get update
+apt-get install lynx
+apt install nginx php php-fpm -y
+```
+
+Install apache2 dan tambahkan file index.php di Werkudara.
+
+```
+apt-get install apache2
+service apache2 start
+apt-get install php
+php -v
+echo '<?php
+        phpinfo();
+?>
+' > /var/www/html/index.php
+```
+
+Pengetesan dilakukan bersama soal 10.
 
 ## No. 10
 
@@ -373,43 +583,65 @@ ping abimanyu.A03.com -c 5
     - Abimanyu:8002
     - Wisanggeni:8003
 
+![image]()
+
 ## No. 11
 
 ### Selain menggunakan Nginx, lakukan konfigurasi Apache Web Server pada worker Abimanyu dengan web server www.abimanyu.yyy.com. Pertama dibutuhkan web server dengan DocumentRoot pada /var/www/abimanyu.yyy
+
+![image]()
 
 ## No. 12
 
 ### Setelah itu ubahlah agar url www.abimanyu.yyy.com/index.php/home menjadi www.abimanyu.yyy.com/home.
 
+![image]()
+
 ## No. 13
 
 ### Selain itu, pada subdomain www.parikesit.abimanyu.yyy.com, DocumentRoot disimpan pada /var/www/parikesit.abimanyu.yyy
+
+![image]()
 
 ## No. 14
 
 ### Pada subdomain tersebut folder /public hanya dapat melakukan directory listing sedangkan pada folder /secret tidak dapat diakses (403 Forbidden).
 
+![image]()
+
 ## No. 15
 
 ### Buatlah kustomisasi halaman error pada folder /error untuk mengganti error kode pada Apache. Error kode yang perlu diganti adalah 404 Not Found dan 403 Forbidden.
+
+![image]()
 
 ## No. 16
 
 ### Buatlah suatu konfigurasi virtual host agar file asset www.parikesit.abimanyu.yyy.com/public/js menjadi 
 www.parikesit.abimanyu.yyy.com/js 
 
+![image]()
+
 ## No. 17
 
 ### Agar aman, buatlah konfigurasi agar www.rjp.baratayuda.abimanyu.yyy.com hanya dapat diakses melalui port 14000 dan 14400.
+
+![image]()
 
 ## No. 18
 
 ### Untuk mengaksesnya buatlah autentikasi username berupa “Wayang” dan password “baratayudayyy” dengan yyy merupakan kode kelompok. Letakkan DocumentRoot pada /var/www/rjp.baratayuda.abimanyu.yyy.
 
+![image]()
+
 ## No. 19
 
 ### Buatlah agar setiap kali mengakses IP dari Abimanyu akan secara otomatis dialihkan ke www.abimanyu.yyy.com (alias)
 
+![image]()
+
 ## No. 20
 
 ### Karena website www.parikesit.abimanyu.yyy.com semakin banyak pengunjung dan banyak gambar gambar random, maka ubahlah request gambar yang memiliki substring “abimanyu” akan diarahkan menuju abimanyu.png.
+
+![image]()
