@@ -1,4 +1,4 @@
-Kelompok  : A03
+![image](https://github.com/kalyanaalk/Jarkom-Modul-2-A03-2023-/assets/107338432/465e3da1-6f93-43e6-b7d4-ee0248f229c4)Kelompok  : A03
 
 Nama      : Kalyana Putri Al Kanza
 
@@ -583,65 +583,260 @@ Pengetesan dilakukan bersama soal 10.
     - Abimanyu:8002
     - Wisanggeni:8003
 
-![image]()
+Dilakukan setup berikut untuk masing-masing worker, dengan xxx diganti dengan nama node untuk memudahkan pengetesan dan y adalah port masing-masing node.
 
-## No. 11
+```
+echo 'nameserver 192.170.2.2
+nameserver 192.170.2.3
+nameserver 192.168.122.1
+' > /etc/resolv.conf
+ apt-get update && apt install nginx php php-fpm -y
+ mkdir /var/www/jarkom
+echo '<?php
+echo "Halo, Kamu berada di xxx";
+?>
+' > /var/www/jarkom/index.php
+echo 'server {
+
+        listen 800y;
+
+        root /var/www/jarkom;
+
+        index index.php index.html index.htm;
+        server_name _;
+
+        location / {
+                        try_files $uri $uri/ /index.php?$query_string;
+        }
+
+        # pass PHP scripts to FastCGI server
+        location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+        }
+
+location ~ /\.ht {
+                        deny all;
+        }
+
+        error_log /var/log/nginx/jarkom_error.log;
+        access_log /var/log/nginx/jarkom_access.log;
+ }
+' > /etc/nginx/sites-available/jarkom
+ ln -s /etc/nginx/sites-available/jarkom /etc/nginx/sites-enabled
+rm /var/www/html -rf
+rm /etc/nginx/sites-available/default
+service php7.0-fpm start
+service php7.0-fpm restart
+service nginx restart
+/etc/init.d/php7.0-fpm start
+
+```
+
+Dilakukan juga setup sebagai berikut di ArjunaLoadBalancer.
+
+```
+echo 'nameserver 192.170.2.2
+nameserver 192.170.2.3
+nameserver 192.168.122.1' > /etc/resolv.conf
+apt-get update
+apt-get install nginx
+echo ' # Default menggunakan Round Robin
+upstream myweb  {
+        server 192.170.1.2:8002; #IP abimanyu
+        server 192.170.1.3:8001; #IP prabukusuma
+        server 192.170.1.4:8003; #IP wisanggeni
+}
+
+server {
+        listen 80;
+        server_name arjuna.A03.com.;
+
+        location / {
+        proxy_pass http://myweb;
+        }
+}' > /etc/nginx/sites-available/lb-jarkom
+
+ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled
+rm /var/www/html -rf
+rm /etc/nginx/sites-available/default
+service nginx restart
+nginx -t
+```
+
+Dilakukan pengetesan berikut di node client. 
+
+```
+lynx http://192.170.1.2
+lynx http://192.170.1.3
+lynx http://192.170.1.4
+lynx http://arjuna.A03.com 
+```
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163774445815603200/image.png?ex=6540cc69&is=652e5769&hm=8eb1bd8807f5d63c32306943c1dba8c3f6d6b7f77cae9cc61a063d76d9a67c81&)
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163774516888096818/image.png?ex=6540cc7a&is=652e577a&hm=fa72521b8396763d2ad747a24a8cb4dd4d43e3e20b9b6079387a2f3dc2ef9507&)
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163774596999286794/image.png?ex=6540cc8d&is=652e578d&hm=18895697ec988d7ec5d5496d4e4a320890e4c569c38541ca9b98a476fcf7a204&)
+
+## No. 11 & 12
 
 ### Selain menggunakan Nginx, lakukan konfigurasi Apache Web Server pada worker Abimanyu dengan web server www.abimanyu.yyy.com. Pertama dibutuhkan web server dengan DocumentRoot pada /var/www/abimanyu.yyy
 
-![image]()
-
-## No. 12
-
 ### Setelah itu ubahlah agar url www.abimanyu.yyy.com/index.php/home menjadi www.abimanyu.yyy.com/home.
 
-![image]()
+Dilakukan setup berikut di Abimanyu.
+
+```
+apt-get update
+apt-get install apache2
+apt-get install wget
+apt-get install unzip
+apt-get install libapache2-mod-php7.0
+
+cd /var/www
+wget 'https://drive.usercontent.google.com/download?id=1a4V23hwK9S7hQEDEcv9FL14UkkrHc-Zc&export=down$unzip abimanyu -d abimanyu.A03
+mv abimanyu.A03/abimanyu.yyy.com/* abimanyu.A03
+rmdir abimanyu.A03/abimanyu.yyy.com
+rm abimanyu
+
+service apache2 start
+cd /etc/apache2/sites-available
+echo '<VirtualHost *:80>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/abimanyu.A03
+        ServerName abimanyu.A03.com
+        ServerAlias www.abimanyu.A03.com
+
+        <Directory /var/www/abimanyu.A03>
+                Options +Indexes
+        </Directory>
+
+        Alias /home /var/www/abimanyu.A03/index.php/home
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>
+' > abimanyu.A03.com.conf
+a2ensite abimanyu.A03.com.conf
+service apache2 restart
+```
+
+## No. 13-16
+
+Dilakukan setup sebagai berikut di Abimanyu.
+
+```
+cd /var/www
+wget 'https://drive.usercontent.google.com/download?id=1LdbYntiYVF_NVNgJis1GLCLPEGyIOreS&export=download&authuser=0&confirm=t&uuid=7440274a-d695-44db-8cd9-70df5bbf7c96&at=APZUnTWw6S5Rd4s_a6CHfvUKTqQG:1696947964978' -O parikesit.abimanyu
+
+unzip parikesit.abimanyu -d parikesit.abimanyu.A03
+mv parikesit.abimanyu.A03/parikesit.abimanyu.yyy.com/* parikesit.abimanyu.A03
+rmdir parikesit.abimanyu.A03/parikesit.abimanyu.yyy.com
+rm parikesit.abimanyu
+mkdir parikesit.abimanyu.A03/secret
+cd parikesit.abimanyu.A03/secret
+echo '# HTML' > secret.html
+
+service apache2 start
+cd /etc/apache2/sites-available
+echo '<VirtualHost *:80>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/parikesit.abimanyu.A03
+        ServerName parikesit.abimanyu.A03.com
+        ServerAlias www.parikesit.abimanyu.A03.com
+
+        <Directory /var/www/parikesit.abimanyu.A03/public>
+                Options +Indexes
+        </Directory>
+
+        <Directory /var/www/parikesit.abimanyu.A03/secret>
+                Options -Indexes
+        </Directory>
+
+        ErrorDocument 403 /error/403.html
+        ErrorDocument 404 /error/404.html
+
+        Alias /js /var/www/parikesit.abimanyu.A03/public/js
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>
+' > parikesit.abimanyu.A03.com.conf
+a2ensite parikesit.abimanyu.A03.com.conf
+service apache2 restart
+```
 
 ## No. 13
 
 ### Selain itu, pada subdomain www.parikesit.abimanyu.yyy.com, DocumentRoot disimpan pada /var/www/parikesit.abimanyu.yyy
 
-![image]()
+Dilakukan setup ServerName dan ServerAlias.
+
+```
+ServerName parikesit.abimanyu.A03.com
+ServerAlias www.parikesit.abimanyu.A03.com
+```
+
+Pengetesan dilakukan sebagai berikut.
+
+```
+lynx parikesit.abimanyu.A03.com
+```
+
+![image](https://media.discordapp.net/attachments/1163557097816981575/1163779611482656768/image.png?ex=6540d139&is=652e5c39&hm=fef6fa471c977dab4ed7c83bd20208cffa5530b11808c49512817ddb231b0759&=&width=1057&height=595)
 
 ## No. 14
 
 ### Pada subdomain tersebut folder /public hanya dapat melakukan directory listing sedangkan pada folder /secret tidak dapat diakses (403 Forbidden).
 
-![image]()
+Dilakukan setup berikut. Option +Indexes agar /public dapat melakukan directory listing dan Option -Indexes agar /secret tidak dapat diakses.
+
+```
+<Directory /var/www/parikesit.abimanyu.A03/public>
+	Options +Indexes
+</Directory>
+
+<Directory /var/www/parikesit.abimanyu.A03/secret>
+	Options -Indexes
+</Directory>
+```
+
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163779941289164820/image.png?ex=6540d187&is=652e5c87&hm=064574f1ea79f28e42c4a0b8596ada47f1ea5f3f75945a85abaa4b8e3e43b93c&)
 
 ## No. 15
 
 ### Buatlah kustomisasi halaman error pada folder /error untuk mengganti error kode pada Apache. Error kode yang perlu diganti adalah 404 Not Found dan 403 Forbidden.
 
-![image]()
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163780583135125544/image.png?ex=6540d221&is=652e5d21&hm=8d92a19a499ac9d40f720e119bc59488f6c3f1267fbea572df4cabd1729664ce&)
 
 ## No. 16
 
-### Buatlah suatu konfigurasi virtual host agar file asset www.parikesit.abimanyu.yyy.com/public/js menjadi 
-www.parikesit.abimanyu.yyy.com/js 
+### Buatlah suatu konfigurasi virtual host agar file asset www.parikesit.abimanyu.yyy.com/public/js menjadi www.parikesit.abimanyu.yyy.com/js 
 
-![image]()
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163781583241748560/image.png?ex=6540d30f&is=652e5e0f&hm=d1eeec85f722e98a96494565906047efe70dcb806f810295a699f9cac84ce72e&)
 
 ## No. 17
 
 ### Agar aman, buatlah konfigurasi agar www.rjp.baratayuda.abimanyu.yyy.com hanya dapat diakses melalui port 14000 dan 14400.
 
-![image]()
+![image](https://cdn.discordapp.com/attachments/1163557097816981575/1163782658057310208/image.png?ex=6540d40f&is=652e5f0f&hm=e9f7ad9829af37a3df60b1f7b1553cc15d228ca7bd6beef431f2958b7fc4e8a0&)
 
 ## No. 18
 
 ### Untuk mengaksesnya buatlah autentikasi username berupa “Wayang” dan password “baratayudayyy” dengan yyy merupakan kode kelompok. Letakkan DocumentRoot pada /var/www/rjp.baratayuda.abimanyu.yyy.
 
-![image]()
 
 ## No. 19
 
 ### Buatlah agar setiap kali mengakses IP dari Abimanyu akan secara otomatis dialihkan ke www.abimanyu.yyy.com (alias)
 
-![image]()
 
 ## No. 20
 
 ### Karena website www.parikesit.abimanyu.yyy.com semakin banyak pengunjung dan banyak gambar gambar random, maka ubahlah request gambar yang memiliki substring “abimanyu” akan diarahkan menuju abimanyu.png.
 
-![image]()
